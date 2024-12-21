@@ -5,189 +5,201 @@ import pug from 'gulp-pug';
 import plumber from 'gulp-plumber';
 import notify from 'gulp-notify';
 import browserSync from 'browser-sync';
-import autoprefixer from 'gulp-autoprefixer';
+import autoPrefixer from 'gulp-autoprefixer';
 import postcss from 'gulp-postcss';
 import mqpacker from 'css-mqpacker';
 import imagemin from 'gulp-imagemin';
 import imageminMozjpeg from 'imagemin-mozjpeg';
 import imageminPngquant from 'imagemin-pngquant';
 import imageminSvgo from 'imagemin-svgo';
+import fs from 'fs';
 
 const srcBase = './_static/src';
 const serverBase = './_server/src';
 const distBase = './_static/dist';
 
-
 const srcPath = {
-  'scss': srcBase + '/scss/**/*.scss',
-  'html': srcBase + '/**/*.html',
-  'pug': srcBase + '/pug/**/*.pug',
-  'img': srcBase + '/img/**/*',
-  'js': srcBase + '/js/**/*.js',
-  'php': srcBase + '/**/*.php',
-  'font': srcBase + '/font/**/*',
+  scss: `${srcBase}/scss/**/*.scss`,
+  html: `${srcBase}/**/*.html`,
+  pug: `${srcBase}/pug/**/*.pug`,
+  img: `${srcBase}/img/**/*`,
+  js: `${srcBase}/js/**/*.js`,
+  php: `${srcBase}/**/*.php`,
+  font: `${srcBase}/font/**/*`,
 };
 
 const serverPath = {
-  'css': serverBase + '/css/',
-  'html': serverBase + '/html/',
-  'img': serverBase + '/img/',
-  'js': serverBase + '/js/',
-  'php': serverBase + '/',
-  'font': serverBase + '/font/',
+  css: `${serverBase}/css/`,
+  html: `${serverBase}/html/`,
+  img: `${serverBase}/img/`,
+  js: `${serverBase}/js/`,
+  php: `${serverBase}/`,
+  font: `${serverBase}/font/`,
 };
 
 const distPath = {
-  'css': distBase + '/css/',
-  'html': distBase + '/',
-  'img': distBase + '/img/',
-  'js': distBase + '/js/',
-  'php': distBase + '/',
-  'font': distBase + '/font/',
+  css: `${distBase}/css/`,
+  html: `${distBase}/`,
+  img: `${distBase}/img/`,
+  js: `${distBase}/js/`,
+  php: `${distBase}/`,
+  font: `${distBase}/font/`,
 };
 
+const browserSyncOption = {
+  server: distBase  // "./_static/dist/" と同義
+};
 
+/**
+ * ディレクトリが存在しない場合は作成する
+ */
+const ensureDir = (dirPath) => {
+  try {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath);
+    }
+  } catch (error) {
+    console.error('Error creating directory:', error);
+  }
+};
 
-const clean = async () => {
-  await del(distBase + '/**');
-  return del(serverBase + '/**');
-}
-
-
-const TARGET_BROWSERS = [
-  'last 2 versions',
-  'ie >= 11'
-];
-
-
-const cssSass = () => {
-  return gulp.src(srcPath.scss, {
-    sourcemaps: true
-  })
-    .pipe(
-      plumber({
-        errorHandler: notify.onError('Error:<%= error.message %>')
-      }))
-    .pipe(sass({
-      outputStyle: 'expanded'
-    }))
-    .pipe(autoprefixer(TARGET_BROWSERS))
-    .pipe(postcss([mqpacker()]))
-    .pipe(gulp.dest(distPath.css, {
-      sourcemaps: './'
-    }))
-    .pipe(gulp.dest(serverPath.css, {
-      sourcemaps: './'
-    })) 
-    .pipe(browserSync.stream())
-    .pipe(notify({
-      message: 'Sassをコンパイルしました！',
-      onLast: true
-    }))
-}
-
-const htmlPug = () => {
+/**
+ * dist と server の両方へコピーする汎用関数
+ */
+const copyToDistAndServer = (src, dist, server) => {
   return gulp
-    .src([srcPath.pug, '!_static/src/pug/**/_*.pug'])
-    .pipe(pug({
-      pretty: true
-    }))
-    .pipe(gulp.dest(distPath.html, {
-      sourcemaps: true
-    }))
-    .pipe(gulp.dest(serverPath.html, {
-      sourcemaps: true
-    }))
+    .src(src)
+    .pipe(gulp.dest(dist))
+    .pipe(gulp.dest(server));
+};
+
+/**
+ * クリーンタスク
+ */
+export const clean = async () => {
+  await del(`${distBase}/**`);
+  return del(`${serverBase}/**`);
+};
+
+/**
+ * Sass コンパイル
+ */
+export const compileSass = () => {
+  ensureDir(`${srcBase}/scss`);
+  return gulp
+    .src(srcPath.scss, { sourcemaps: true })
+    .pipe(plumber({ errorHandler: notify.onError('Error: <%= error.message %>') }))
+    .pipe(sass({ outputStyle: 'expanded' }))
+    .pipe(autoPrefixer({ cascade: false }))
+    .pipe(postcss([mqpacker()]))
+    .pipe(gulp.dest(distPath.css, { sourcemaps: './' }))
+    .pipe(gulp.dest(serverPath.css, { sourcemaps: './' }))
     .pipe(browserSync.stream())
-    .pipe(notify({
-      message: 'Pugをコンパイルしました！',
-      onLast: true
-    }))
-}
+    .pipe(notify({ message: 'Sassをコンパイルしました！', onLast: true }));
+};
 
-
-const imgImagemin = () => {
-  return gulp.src(srcPath.img)
-    .pipe(
-      imagemin(
-        [
-          imageminMozjpeg({
-            quality: 80
-          }),
-          imageminPngquant(),
-          imageminSvgo({ // SVGOの設定
-            plugins: [
-              {
-                name: "removeViewBox",
-                active: false, // viewBoxを保持
-              },
-            ],
-          }),
-        ]
-      )
-    )
-    .pipe(gulp.dest(distPath.img))
-    .pipe(gulp.dest(serverPath.img))
-}
-
-
-
-const html = () => {
-  return gulp.src(srcPath.html)
+/**
+ * Pug コンパイル
+ */
+export const compilePug = () => {
+  ensureDir(`${srcBase}/pug`);
+  // 「_」から始まるPugはコンパイルしないようにしている
+  return gulp
+    .src([srcPath.pug, `!${srcBase}/pug/**/_*.pug`], { allowEmpty: true })
+    .pipe(plumber({ errorHandler: notify.onError('Error: <%= error.message %>') }))
+    .pipe(pug({ pretty: true }))
     .pipe(gulp.dest(distPath.html))
     .pipe(gulp.dest(serverPath.html))
-}
+    .pipe(browserSync.stream())
+    .pipe(notify({ message: 'Pugをコンパイルしました！', onLast: true }));
+};
 
+/**
+ * 画像圧縮 (imagemin)
+ */
+export const optimizeImages = () => {
+  ensureDir(`${srcBase}/img`);
+  return gulp
+    .src(srcPath.img)
+    .pipe(
+      imagemin([
+        imageminMozjpeg({ quality: 80 }),
+        imageminPngquant(),
+        imageminSvgo({
+          plugins: [{ name: 'removeViewBox', active: false }]
+        })
+      ])
+    )
+    .pipe(gulp.dest(distPath.img))
+    .pipe(gulp.dest(serverPath.img));
+};
 
-const js = () => {
-  return gulp.src(srcPath.js)
-    .pipe(gulp.dest(distPath.js))
-    .pipe(gulp.dest(serverPath.js))
-}
+/**
+ * HTMLコピー
+ */
+export const copyHtml = () => {
+  return copyToDistAndServer(srcPath.html, distPath.html, serverPath.html);
+};
 
+/**
+ * JSコピー
+ */
+export const copyJs = () => {
+  return copyToDistAndServer(srcPath.js, distPath.js, serverPath.js);
+};
 
+/**
+ * PHPコピー
+ */
+export const copyPhp = () => {
+  return copyToDistAndServer(srcPath.php, distPath.php, serverPath.php);
+};
 
-const php = () => {
-  return gulp.src(srcPath.php)
-    .pipe(gulp.dest(distPath.php))
-    .pipe(gulp.dest(serverPath.php))
-}
+/**
+ * フォントコピー
+ */
+export const copyFont = () => {
+  ensureDir(`${srcBase}/font`);
+  return copyToDistAndServer(srcPath.font, distPath.font, serverPath.font);
+};
 
-
-const font = () => {
-  return gulp.src(srcPath.font)
-    .pipe(gulp.dest(distPath.font))
-    .pipe(gulp.dest(serverPath.font))
-}
-
-const browserSyncFunc = () => {
+/**
+ * ブラウザ同期起動
+ */
+export const browserSyncFunc = () => {
   browserSync.init(browserSyncOption);
-}
+};
 
-const browserSyncOption = {
-  server: "./_static/dist/"
-}
-
-const browserSyncReload = (done) => {
+/**
+ * ブラウザリロード
+ */
+export const browserSyncReload = (done) => {
   browserSync.reload();
   done();
-}
+};
 
-const watchFiles = () => {
-  gulp.watch(srcPath.scss, gulp.series(cssSass))
-  gulp.watch(srcPath.pug, gulp.series(htmlPug))
-  gulp.watch(srcPath.html, gulp.series(html, browserSyncReload))
-  gulp.watch(srcPath.js, gulp.series(js, browserSyncReload))
-  gulp.watch(srcPath.img, gulp.series(imgImagemin, browserSyncReload))
-  gulp.watch(srcPath.php, gulp.series(php, browserSyncReload))
-  gulp.watch(srcPath.font, gulp.series(font, browserSyncReload))
-}
+/**
+ * ファイルウォッチ
+ */
+export const watchFiles = () => {
+  gulp.watch(srcPath.scss, gulp.series(compileSass, browserSyncReload));
+  gulp.watch(srcPath.pug, gulp.series(compilePug, browserSyncReload));
+  gulp.watch(srcPath.html, gulp.series(copyHtml, browserSyncReload));
+  gulp.watch(srcPath.js, gulp.series(copyJs, browserSyncReload));
+  gulp.watch(srcPath.img, gulp.series(optimizeImages, browserSyncReload));
+  gulp.watch(srcPath.php, gulp.series(copyPhp, browserSyncReload));
+  gulp.watch(srcPath.font, gulp.series(copyFont, browserSyncReload));
+};
 
-
-const defaultTask = gulp.series(
+/**
+ * デフォルトタスク
+ */
+const build = gulp.series(
   clean,
-  gulp.parallel(html, htmlPug, cssSass, js, imgImagemin, php, font),
-  gulp.parallel(watchFiles, browserSyncFunc)
+  gulp.parallel(copyHtml, compileSass, compilePug, copyJs, optimizeImages, copyPhp, copyFont)
 );
 
-export default defaultTask
+export default gulp.series(
+  build,
+  gulp.parallel(watchFiles, browserSyncFunc)
+);
