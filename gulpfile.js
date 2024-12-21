@@ -1,11 +1,11 @@
 import gulp from 'gulp';
 import { deleteAsync as del } from 'del';
 import sass from 'gulp-dart-sass';
-import pug from 'gulp-pug';
+// import pug from 'gulp-pug';
 import plumber from 'gulp-plumber';
 import notify from 'gulp-notify';
 import browserSync from 'browser-sync';
-import autoprefixer from 'gulp-autoprefixer';
+// import autoprefixer from 'gulp-autoprefixer';
 import postcss from 'gulp-postcss';
 import mqpacker from 'css-mqpacker';
 import imagemin from 'gulp-imagemin';
@@ -21,7 +21,7 @@ const distBase = './_static/dist';
 const srcPath = {
   'scss': srcBase + '/scss/**/*.scss',
   'html': srcBase + '/**/*.html',
-  'pug': srcBase + '/pug/**/*.pug',
+  // 'pug': srcBase + '/pug/**/*.pug',
   'img': srcBase + '/img/**/*',
   'js': srcBase + '/js/**/*.js',
   'php': srcBase + '/**/*.php',
@@ -54,10 +54,10 @@ const clean = async () => {
 }
 
 
-const TARGET_BROWSERS = [
-  'last 2 versions',
-  'ie >= 11'
-];
+// const TARGET_BROWSERS = [
+//   'last 2 versions',
+//   'ie >= 11'
+// ];
 
 
 const cssSass = () => {
@@ -71,14 +71,14 @@ const cssSass = () => {
     .pipe(sass({
       outputStyle: 'expanded'
     }))
-    .pipe(autoprefixer(TARGET_BROWSERS))
+    // .pipe(autoprefixer(TARGET_BROWSERS))
     .pipe(postcss([mqpacker()]))
     .pipe(gulp.dest(distPath.css, {
       sourcemaps: './'
     }))
     .pipe(gulp.dest(serverPath.css, {
       sourcemaps: './'
-    })) 
+    }))
     .pipe(browserSync.stream())
     .pipe(notify({
       message: 'Sassをコンパイルしました！',
@@ -86,24 +86,24 @@ const cssSass = () => {
     }))
 }
 
-const htmlPug = () => {
-  return gulp
-    .src([srcPath.pug, '!_static/src/pug/**/_*.pug'])
-    .pipe(pug({
-      pretty: true
-    }))
-    .pipe(gulp.dest(distPath.html, {
-      sourcemaps: true
-    }))
-    .pipe(gulp.dest(serverPath.html, {
-      sourcemaps: true
-    }))
-    .pipe(browserSync.stream())
-    .pipe(notify({
-      message: 'Pugをコンパイルしました！',
-      onLast: true
-    }))
-}
+// const htmlPug = () => {
+//   return gulp
+//     .src([srcPath.pug, '!_static/src/pug/**/_*.pug'])
+//     .pipe(pug({
+//       pretty: true
+//     }))
+//     .pipe(gulp.dest(distPath.html, {
+//       sourcemaps: true
+//     }))
+//     .pipe(gulp.dest(serverPath.html, {
+//       sourcemaps: true
+//     }))
+//     .pipe(browserSync.stream())
+//     .pipe(notify({
+//       message: 'Pugをコンパイルしました！',
+//       onLast: true
+//     }))
+// }
 
 
 const imgImagemin = () => {
@@ -175,7 +175,7 @@ const browserSyncReload = (done) => {
 
 const watchFiles = () => {
   gulp.watch(srcPath.scss, gulp.series(cssSass))
-  gulp.watch(srcPath.pug, gulp.series(htmlPug))
+  // gulp.watch(srcPath.pug, gulp.series(htmlPug))
   gulp.watch(srcPath.html, gulp.series(html, browserSyncReload))
   gulp.watch(srcPath.js, gulp.series(js, browserSyncReload))
   gulp.watch(srcPath.img, gulp.series(imgImagemin, browserSyncReload))
@@ -186,7 +186,7 @@ const watchFiles = () => {
 
 const defaultTask = gulp.series(
   clean,
-  gulp.parallel(html, htmlPug, cssSass, js, imgImagemin, php, font),
+  gulp.parallel(html, cssSass, js, imgImagemin, php, font),
   gulp.parallel(watchFiles, browserSyncFunc)
 );
 
