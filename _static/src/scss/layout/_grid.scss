@@ -6,17 +6,16 @@ $gutter-width: 16px; // カラム間の間隔
 
 // コンテナ
 .container {
-  max-width: 1200px; // コンテナの最大幅
+  max-width: 1440px; // コンテナの最大幅
   margin: 0 auto; // センター揃え
   padding: 0 $gutter-width; // コンテナの内側余白
+  box-sizing: border-box;
 }
 
 // 行
 .row {
   @include mixins.flex(row, flex-start, stretch); // フレックスボックスミックスインを利用
   flex-wrap: wrap; // 行を折り返し可能に
-  margin-left: calc(-#{$gutter-width} / 2);
-  margin-right: calc(-#{$gutter-width} / 2);
 }
 
 // カラム
