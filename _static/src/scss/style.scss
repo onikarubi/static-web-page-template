@@ -1,0 +1,34 @@
+// 抽象層
+// @import 'abstracts/variables';
+// @import 'abstracts/functions';
+@use 'abstracts/mixins';
+// @import 'abstracts/placeholders';
+
+// ベーススタイル
+@use 'base/reset';
+// @import 'base/typography';
+// @import 'base/base';
+
+// レイアウト
+@use 'layout/grid';
+// @import 'layout/header';
+// @import 'layout/footer';
+// @import 'layout/navigation';
+
+// コンポーネント
+// @import 'components/buttons';
+// @import 'components/cards';
+// @import 'components/modals';
+
+// ページ
+// @import 'pages/home';
+// @import 'pages/about';
+// @import 'pages/contact';
+
+// テーマ
+// @import 'themes/dark';
+// @import 'themes/light';
+
+// ベンダー
+// @import 'vendors/normalize';
+// @import 'vendors/bootstrap';

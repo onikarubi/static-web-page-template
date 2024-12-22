@@ -1,0 +1,99 @@
+@use "../abstracts/mixins"; // ミックスインをインポート
+
+// グリッドシステムの基本設定
+$grid-columns: 12; // デフォルトの列数
+$gutter-width: 16px; // カラム間の間隔
+
+// コンテナ
+.container {
+  max-width: 1440px; // コンテナの最大幅
+  margin: 0 auto; // センター揃え
+  padding: 0 $gutter-width; // コンテナの内側余白
+  box-sizing: border-box;
+}
+
+// 行
+.row {
+  @include mixins.flex(row, flex-start, stretch); // フレックスボックスミックスインを利用
+  flex-wrap: wrap; // 行を折り返し可能に
+}
+
+// カラム
+.col {
+  flex: 1;
+  padding-left: calc($gutter-width / 2);
+  padding-right: calc($gutter-width / 2);
+
+  // カラムの幅を指定
+  @for $i from 1 through $grid-columns {
+    &-#{$i} {
+      flex: 0 0 calc(100% / $grid-columns * $i);
+      max-width: calc(100% / $grid-columns * $i);
+    }
+  }
+}
+
+// メディアクエリによるレスポンシブ対応
+@include mixins.respond-to(small) {
+  .container {
+    max-width: 100%; // モバイルフル幅
+  }
+
+  .row {
+    flex-direction: column; // 縦方向に並べる
+  }
+
+  .col {
+    max-width: 100%;
+    flex: 1 1 100%; // カラムをフル幅に
+  }
+}
+
+@include mixins.respond-to(medium) {
+  .container {
+    max-width: 720px; // タブレット向け
+  }
+}
+
+@include mixins.respond-to(large) {
+  .container {
+    max-width: 960px; // 小型ノートPC向け
+  }
+}
+
+@include mixins.respond-to(xlarge) {
+  .container {
+    max-width: 1140px; // デスクトップ向け
+  }
+}
+
+// ブレークポイントごとのカラム設定
+@for $i from 1 through $grid-columns {
+  @include mixins.respond-to(small) {
+    .col-sm-#{$i} {
+      flex: 0 0 calc(100% / $grid-columns * $i);
+      max-width: calc(100% / $grid-columns * $i);
+    }
+  }
+
+  @include mixins.respond-to(medium) {
+    .col-md-#{$i} {
+      flex: 0 0 calc(100% / $grid-columns * $i);
+      max-width: calc(100% / $grid-columns * $i);
+    }
+  }
+
+  @include mixins.respond-to(large) {
+    .col-lg-#{$i} {
+      flex: 0 0 calc(100% / $grid-columns * $i);
+      max-width: calc(100% / $grid-columns * $i);
+    }
+  }
+
+  @include mixins.respond-to(xlarge) {
+    .col-xl-#{$i} {
+      flex: 0 0 calc(100% / $grid-columns * $i);
+      max-width: calc(100% / $grid-columns * $i);
+    }
+  }
+}
