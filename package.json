@@ -18,14 +18,15 @@
     "glob": "^11.0.0",
     "gulp": "^5.0.0",
     "gulp-autoprefixer": "^9.0.0",
-    "gulp-dart-sass": "^1.1.0",
     "gulp-imagemin": "^9.1.0",
     "gulp-notify": "^5.0.0",
     "gulp-plumber": "^1.2.1",
     "gulp-postcss": "^10.0.0",
     "gulp-pug": "^5.0.0",
+    "gulp-sass": "^6.0.0",
     "imagemin-mozjpeg": "^10.0.0",
     "imagemin-pngquant": "^10.0.0",
-    "imagemin-svgo": "^11.0.1"
+    "imagemin-svgo": "^11.0.1",
+    "sass": "^1.83.0"
   }
 }

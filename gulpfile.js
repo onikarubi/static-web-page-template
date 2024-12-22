@@ -1,6 +1,7 @@
 import gulp from 'gulp';
 import { deleteAsync as del } from 'del';
-import sass from 'gulp-dart-sass';
+import sass from 'sass';
+import gulpSass from 'gulp-sass';
 import pug from 'gulp-pug';
 import plumber from 'gulp-plumber';
 import notify from 'gulp-notify';
@@ -13,6 +14,8 @@ import imageminMozjpeg from 'imagemin-mozjpeg';
 import imageminPngquant from 'imagemin-pngquant';
 import imageminSvgo from 'imagemin-svgo';
 import fs from 'fs';
+
+const dartSass = gulpSass(sass);
 
 const srcBase = './_static/src';
 const serverBase = './_server/src';
@@ -89,7 +92,7 @@ export const compileSass = () => {
   return gulp
     .src(srcPath.scss, { sourcemaps: true })
     .pipe(plumber({ errorHandler: notify.onError('Error: <%= error.message %>') }))
-    .pipe(sass({ outputStyle: 'expanded' }))
+    .pipe(dartSass({ outputStyle: 'expanded' }))
     .pipe(autoPrefixer({ cascade: false }))
     .pipe(postcss([mqpacker()]))
     .pipe(gulp.dest(distPath.css, { sourcemaps: './' }))
@@ -120,7 +123,7 @@ export const compilePug = () => {
 export const optimizeImages = () => {
   ensureDir(`${srcBase}/img`);
   return gulp
-    .src(srcPath.img)
+    .src(srcPath.img, { encoding: false })
     .pipe(
       imagemin([
         imageminMozjpeg({ quality: 80 }),
