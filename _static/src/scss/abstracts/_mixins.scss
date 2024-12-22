@@ -1,0 +1,48 @@
+// メディアクエリ用ミックスイン
+@mixin respond-to($breakpoint) {
+  @if $breakpoint ==small { // スマートフォン向け (縦長画面)
+    @media (max-width: 576px) {
+      @content;
+    }
+  }
+
+  @else if $breakpoint ==medium { // タブレット向け
+    @media (max-width: 768px) {
+      @content;
+    }
+  }
+
+  @else if $breakpoint ==large { // 小型ノートPCやタブレット横向き
+    @media (max-width: 992px) {
+      @content;
+    }
+  }
+
+  @else if $breakpoint ==xlarge { // デスクトップPC
+    @media (max-width: 1200px) {
+      @content;
+    }
+  }
+}
+
+// フレックスボックス用ミックスイン
+@mixin flex($direction: row, $justify: flex-start, $align: stretch) {
+  display: flex;
+  flex-direction: $direction;
+  justify-content: $justify;
+  align-items: $align;
+}
+
+// トランジション用ミックスイン
+@mixin transition($properties: all, $duration: 0.3s, $timing: ease) {
+  transition: $properties $duration $timing;
+}
+
+// 背景用ミックスイン
+@mixin background($image: none, $color: #fff, $size: cover, $position: center) {
+  background-image: $image;
+  background-color: $color;
+  background-size: $size;
+  background-position: $position;
+  background-repeat: no-repeat;
+}
